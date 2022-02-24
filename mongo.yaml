@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:   #Main Part- Blueprint for Pods #template is configuration for Pod. Has it's own "metadata" and "spec"
+    metadata:
+      labels:   #you can give any K8s components a label. Labels are key-value pair. Identifier of the compoenents.
+        app: mongo  #For Pods label is mandatory. All Pod replicas will have same lavel. 
+    spec:
+      containers:  #which image ? which port ? 
+      - name: mongodb
+        image: mongo:5.0  #Create Pods with "mongo:5.0" image
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom: 
+            secretKeyRef:  #reference Secret data here from mongo-secret config file instead of hardcore sensitive value
+              name: mongo-secret
+              key: mongo-user
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongo  #select pods to forward the request to. This should match the label of the Pod that will belomg to this service.  
+  ports:
+    - protocol: TCP
+      port: 27017  #it can be any port but to keep things simple we are using same port. 
+      targetPort: 27017  #the target port is always same as container port

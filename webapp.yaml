@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  labels:
+    app: webapp  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:   #Main Part- Blueprint for Pods #template is configuration for Pod. Has it's own "metadata" and "spec"
+    metadata:
+      labels:   #you can give any K8s components a label. Labels are key-value pair. Identifier of the compoenents.
+        app: webapp  #For Pods label is mandatory. All Pod replicas will have same lavel. 
+    spec:
+      containers:  #which image ? which port ? 
+      - name: webapp
+        image: nanajanashia/k8s-demo-app:v1.0  #Create Pods with "mongo:5.0" image
+        ports:
+        - containerPort: 3000
+        env:  #When the webapp starts it need to connect with Database.
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  type: NodePort  #ClusterIP by default. It is an internal service. NodePort is external service
+  selector:
+    app: webapp  #select pods to forward the request to. This should match the label of the Pod that will belomg to this service.  
+  ports:
+    - protocol: TCP
+      port: 3000  #it can be any port but to keep things simple we are using same port. 
+      targetPort: 3000  #the target port is always same as container port
+      nodePort: 30000     #this is the port which will open on K8s node on which the application will be accessable. The range of nodeport is 30000-32767
+
