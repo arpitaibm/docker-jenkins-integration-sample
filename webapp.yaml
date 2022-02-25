@@ -16,7 +16,7 @@ spec:
     spec:
       containers:  #which image ? which port ? 
       - name: webapp
-        image: nanajanashia/k8s-demo-app:v1.0  #Create Pods with "mongo:5.0" image
+        image: arpita21/docker-jenkins-integration:42  #Create Pods with "mongo:5.0" image
         ports:
         - containerPort: 3000
         env:  #When the webapp starts it need to connect with Database.
